@@ -1,0 +1,13 @@
+#!/usr/bin/env xdg-open
+[Desktop Entry]
+Type=Application
+Name=Install ZStats
+GenericName=Zombies stats and HUD
+Comment=Install the Black Ops II ZStats mod
+Icon=applications-games
+Terminal=true
+StartupNotify=false
+Categories=Game;
+Path=
+Exec=bash -c 'k="%k"; k="${k#file://}"; d="$(dirname "$k")"; cd "$d" || exit 1; bash ./install.sh; read -rp "Press Enter to close. "'
+X-KDE-SubstituteUID=false
