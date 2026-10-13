@@ -61,6 +61,19 @@
           "labels": ["MINIMAL", "COMPACT", "DETAILED", "CUSTOM"]
         },
         {
+          "dvar": "zs_scoreboard_hud_preset",
+          "label": "SCOREBOARD HUD PRESET",
+          "type": "enum",
+          "kind": "choice",
+          "default": "detailed",
+          "storage_slot": 26,
+          "boundary": "LIVE",
+          "games": ["t6", "t7"],
+          "description": "Choose the ZStats panel while viewing the in-game scoreboard. SAME uses your normal HUD preset; OFF hides the panel only during the scoreboard.",
+          "values": ["same", "minimal", "compact", "detailed", "custom", "off"],
+          "labels": ["SAME AS HUD", "MINIMAL", "COMPACT", "DETAILED", "CUSTOM", "OFF"]
+        },
+        {
           "dvar": "zs_hud_opacity",
           "label": "BACKGROUND OPACITY",
           "type": "int",

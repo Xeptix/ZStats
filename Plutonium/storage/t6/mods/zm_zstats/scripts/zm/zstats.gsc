@@ -1,4 +1,4 @@
-// ZSTATS T6 v1.0
+// ZSTATS T6 v1.1
 // Passive Zombies telemetry, live HUD, round MVP feed, and game-over awards.
 
 // Every raw Plutonium GSC is linked independently, including each component
@@ -158,6 +158,7 @@ zs_set_defaults()
     set_dvar_if_unset( "zs_hud_position", "top_right" );
     set_dvar_if_unset( "zs_hud_scale", "100" );
     set_dvar_if_unset( "zs_hud_preset", "compact" );
+    set_dvar_if_unset( "zs_scoreboard_hud_preset", "detailed" );
     set_dvar_if_unset( "zs_hud_opacity", "22" );
     set_dvar_if_unset( "zs_hud_header", "1" );
     set_dvar_if_unset( "zs_hud_time", "1" );
@@ -404,7 +405,7 @@ zs_api_add_value( player, id, delta )
 zs_version()
 {
     // ZS_VERSION_BEGIN
-    return "1.0";
+    return "1.1";
     // ZS_VERSION_END
 }
 
@@ -2415,11 +2416,6 @@ zs_per_round_text( value, rounds )
     return zs_tenths_text( zs_average_tenths( value, rounds ) );
 }
 
-zs_per_round_value( value, rounds )
-{
-    return zs_average_tenths( value, rounds ) / 10.0;
-}
-
 zs_percentage_text( numerator, denominator )
 {
     if ( denominator <= 0 )
@@ -2434,17 +2430,28 @@ zs_ratio_text( numerator, denominator )
     return zs_tenths_text( int( numerator * 10 / denominator ) );
 }
 
-zs_hud_preset()
+zs_hud_preset( player )
 {
     preset = zs_cfg_string( "zs_hud_preset", "compact" );
     if ( preset != "minimal" && preset != "compact" && preset != "detailed" && preset != "custom" )
         preset = "compact";
+    if ( isdefined( player.zstats.scoreboard_open ) && player.zstats.scoreboard_open )
+    {
+        scoreboard_preset = zs_cfg_string( "zs_scoreboard_hud_preset", "detailed" );
+        if ( scoreboard_preset == "off" )
+            return "off";
+        if ( scoreboard_preset == "minimal" || scoreboard_preset == "compact" ||
+            scoreboard_preset == "detailed" || scoreboard_preset == "custom" )
+            return scoreboard_preset;
+    }
     return preset;
 }
 
-zs_hud_metric_enabled( metric )
+zs_hud_metric_enabled( player, metric )
 {
-    preset = zs_hud_preset();
+    preset = zs_hud_preset( player );
+    if ( preset == "off" )
+        return 0;
     if ( preset == "minimal" )
         return metric == "time" || metric == "zombies";
     if ( preset == "compact" )
@@ -2498,11 +2505,19 @@ zs_hud_number_row( label, value, pb_suffix )
     return row;
 }
 
+zs_hud_average_row( label, total, rounds, pb_suffix )
+{
+    row = zs_hud_row( label + pb_suffix, zs_per_round_text( total, rounds ) );
+    row.pb = pb_suffix != "";
+    return row;
+}
+
 zs_hud_timer_row( label, elapsed, anchor )
 {
     row = spawnstruct();
     row.label = label;
-    row.value = int( elapsed / 1000 );
+    // SetTimerUp takes a negative offset to begin above zero.
+    row.value = 0 - int( elapsed / 1000 );
     row.mode = "timer";
     row.token = anchor;
     row.pb = 0;
@@ -2562,9 +2577,9 @@ zs_hud_rows()
     rounds = zs_observed_rounds( self );
     match_kills = zs_match_value( self, "kills" );
 
-    if ( zs_hud_metric_enabled( "time" ) )
+    if ( zs_hud_metric_enabled( self, "time" ) )
         rows[rows.size] = zs_hud_timer_row( "TIME", zs_match_elapsed(), level.zstats.match_start );
-    if ( zs_hud_metric_enabled( "zombies" ) )
+    if ( zs_hud_metric_enabled( self, "zombies" ) )
     {
         zombies_row = zs_hud_row( "ZOMBIES", "--" );
         if ( level.zstats.in_round )
@@ -2575,30 +2590,30 @@ zs_hud_rows()
         }
         rows[rows.size] = zombies_row;
     }
-    if ( zs_hud_metric_enabled( "ppr" ) )
+    if ( zs_hud_metric_enabled( self, "ppr" ) )
     {
         ppr_pb = "";
         ppr_row = zs_hud_row( "PPR", "N/A" );
         if ( zs_score_available( self ) )
         {
             ppr_pb = self zs_hud_pb_suffix( "ppr", self.zstats.points_earned );
-            ppr_row = zs_hud_number_row( "PPR", zs_per_round_value( self.zstats.points_earned, rounds ), ppr_pb );
+            ppr_row = zs_hud_average_row( "PPR", self.zstats.points_earned, rounds, ppr_pb );
         }
         rows[rows.size] = ppr_row;
     }
-    if ( zs_hud_metric_enabled( "kpr" ) )
+    if ( zs_hud_metric_enabled( self, "kpr" ) )
     {
         kpr_pb = self zs_hud_pb_suffix( "kpr", match_kills );
-        rows[rows.size] = zs_hud_number_row( "KPR", zs_per_round_value( match_kills, rounds ), kpr_pb );
+        rows[rows.size] = zs_hud_average_row( "KPR", match_kills, rounds, kpr_pb );
     }
-    if ( zs_hud_metric_enabled( "round_time" ) )
+    if ( zs_hud_metric_enabled( self, "round_time" ) )
     {
         round_time_row = zs_hud_row( "ROUND TIME", "--" );
         if ( level.zstats.in_round && level.zstats.capabilities.round_timing )
             round_time_row = zs_hud_timer_row( "ROUND TIME", zs_round_elapsed(), level.zstats.round_start );
         rows[rows.size] = round_time_row;
     }
-    if ( zs_hud_metric_enabled( "score" ) )
+    if ( zs_hud_metric_enabled( self, "score" ) )
     {
         earned_row = zs_hud_row( "EARNED", "N/A" );
         if ( zs_score_available( self ) )
@@ -2606,17 +2621,17 @@ zs_hud_rows()
                 self zs_hud_career_match_pb_suffix( 9, self.zstats.points_earned ) );
         rows[rows.size] = earned_row;
     }
-    if ( zs_hud_metric_enabled( "round_kills" ) )
+    if ( zs_hud_metric_enabled( self, "round_kills" ) )
     {
         round_kills = zs_round_value( self, "kills" );
         kills_pb = self zs_hud_round_pb_suffix( 1, round_kills, self.zstats.best_round_kills );
-        if ( zs_hud_preset() == "detailed" )
+        if ( zs_hud_preset( self ) == "detailed" )
             rows[rows.size] = zs_hud_number_row( "KILLS", match_kills,
                 self zs_hud_career_match_pb_suffix( 10, match_kills ) );
         else
             rows[rows.size] = zs_hud_number_row( "ROUND KILLS", round_kills, kills_pb );
     }
-    if ( zs_hud_metric_enabled( "round_points" ) )
+    if ( zs_hud_metric_enabled( self, "round_points" ) )
     {
         round_points = zs_round_value( self, "points" );
         points_row = zs_hud_row( "POINTS", "N/A" );
@@ -2627,16 +2642,16 @@ zs_hud_rows()
         }
         rows[rows.size] = points_row;
     }
-    if ( zs_hud_metric_enabled( "headshots" ) )
+    if ( zs_hud_metric_enabled( self, "headshots" ) )
     {
         round_headshots = zs_round_value( self, "headshots" );
         headshots_pb = self zs_hud_round_pb_suffix( 2, round_headshots, self.zstats.best_round_headshots );
         rows[rows.size] = zs_hud_number_row( "HEADSHOTS", round_headshots, headshots_pb );
     }
-    if ( zs_hud_metric_enabled( "round_revives" ) )
+    if ( zs_hud_metric_enabled( self, "round_revives" ) )
     {
         players = getplayers();
-        if ( zs_hud_preset() == "detailed" )
+        if ( zs_hud_preset( self ) == "detailed" )
         {
             revives_label = "REVIVES N/A";
             revives_pb = "";
@@ -2660,7 +2675,7 @@ zs_hud_rows()
             rows[rows.size] = zs_hud_number_row( "REVIVES", round_revives, revives_pb );
         }
     }
-    if ( zs_hud_metric_enabled( "round_number" ) )
+    if ( zs_hud_metric_enabled( self, "round_number" ) )
     {
         current_round = zs_current_round_number();
         highest_round_pb = self zs_hud_career_match_pb_suffix( 11, current_round );
@@ -2669,7 +2684,7 @@ zs_hud_rows()
         round_row.mode = "single";
         round_row.pb = highest_round_pb != "";
         rows[rows.size] = round_row;
-        if ( zs_hud_preset() == "detailed" && zs_hud_metric_enabled( "round_kills" ) )
+        if ( zs_hud_preset( self ) == "detailed" && zs_hud_metric_enabled( self, "round_kills" ) )
         {
             round_kills = zs_round_value( self, "kills" );
             round_pb = self zs_hud_round_pb_suffix( 1, round_kills, self.zstats.best_round_kills );
@@ -2762,10 +2777,10 @@ zs_destroy_live_hud_elements()
 zs_resize_hud_rows( count )
 {
     single_last = 0;
-    if ( count > 0 && zs_hud_metric_enabled( "round_number" ) )
+    if ( count > 0 && zs_hud_metric_enabled( self, "round_number" ) )
     {
         single_last = 1;
-        if ( zs_hud_preset() == "detailed" && zs_hud_metric_enabled( "round_kills" ) )
+        if ( zs_hud_preset( self ) == "detailed" && zs_hud_metric_enabled( self, "round_kills" ) )
             single_last = 3;
     }
     if ( self.zstats.hud_labels.size == count && self.zstats.hud_last_row_single == single_last )
@@ -2814,7 +2829,7 @@ zs_resize_hud_rows( count )
 
 zs_hud_base_width()
 {
-    preset = zs_hud_preset();
+    preset = zs_hud_preset( self );
     if ( preset == "minimal" )
         return 86;
     if ( preset == "detailed" )
@@ -3009,6 +3024,12 @@ zs_menu_response_watch()
             self zs_pb_reset_record( response );
             continue;
         }
+        if ( isdefined( menu ) && menu == "class" && isdefined( response ) &&
+            ( response == "zstats_scoreboard_on" || response == "zstats_scoreboard_off" ) )
+        {
+            self.zstats.scoreboard_open = response == "zstats_scoreboard_on";
+            continue;
+        }
         legacy_response = isdefined( menu ) && menu == "zstats" && isdefined( response ) && response == "toggle_hud";
         pause_response = isdefined( menu ) && menu == "class" && isdefined( response ) && response == "zstats_toggle_hud";
         if ( !legacy_response && !pause_response )
@@ -3054,6 +3075,12 @@ zs_hud_watch()
         {
             // A client-hidden panel must release its HUD slots and stop
             // publishing dynamic text, not merely become transparent.
+            self zs_destroy_live_hud_elements();
+            wait 0.25;
+            continue;
+        }
+        if ( zs_hud_preset( self ) == "off" )
+        {
             self zs_destroy_live_hud_elements();
             wait 0.25;
             continue;

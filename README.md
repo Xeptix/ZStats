@@ -6,7 +6,9 @@ by Xep
 
 [**Download the latest release**](https://github.com/Xeptix/ZStats/releases/latest)
 
-[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/F6L1285ROA)
+[![Support the mod on Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/F6L1285ROA)
+[![Support the mod on Patreon](https://img.shields.io/badge/Patreon-Xeptix-F96854?logo=patreon&logoColor=white)](https://www.patreon.com/Xeptix)
+[![Join the Discord](https://img.shields.io/badge/Discord-Join-5865F2?logo=discord&logoColor=white)](https://discord.gg/RE85HRwYZZ)
 
 ZStats adds a compact live HUD, a round-MVP callout, and a Game Over recap without
 replacing the stock scoreboard. It keeps track of the match while you play and
@@ -30,9 +32,11 @@ Plutonium T6 (Black Ops II), ordinary round-based Zombies. Grief and Turned
 disable ZStats' telemetry and presentation because their scoring does not fit
 the co-op stats model.
 
-ZStats is a **mod**, not a loose-script install. Select `zm_zstats` in the Mods
-menu. Plutonium loads one mod at a time; use ZBundle when you want ZStats with
-the other Z mods. For Black Ops II, ZBundle is included in
+The complete ZStats experience is a selectable **mod** named `zm_zstats`.
+Plutonium loads one mod at a time; use ZBundle when you want ZStats with
+the other Z mods. A loose-script route is also included for users who cannot
+select the standalone mod, but it does not load ZStats' Lua settings menu or
+client-local career-PB storage. For Black Ops II, ZBundle is included in
 [ZPause's Treyarch Bundle download](https://github.com/Xeptix/ZPause/releases/latest);
 its installer offers the combined mod.
 
@@ -40,14 +44,14 @@ its installer offers the combined mod.
 
 ## Install
 
-Download **ZStats T6 v1.0 by Xep.zip** from the release page and extract the
+Download the ZStats T6 archive from the release page and extract the
 entire archive. Run `installer/windows/install.bat` on Windows or
 `installer/linux/install.sh` on Linux. The Windows installer uses the Plutonium
 folder under `%localappdata%` by default; pass `-Root <Plutonium folder>` if
-yours is elsewhere. The Linux installer asks for the Plutonium folder, or takes
-it with `--root <folder>`.
+yours is elsewhere. The Linux installer searches Wine, Proton, Steam Deck,
+Heroic, Lutris, and Bottles prefixes, or takes `--root <folder>`.
 
-The package installs to:
+The default mod route installs to:
 
 ```text
 Plutonium/storage/t6/mods/zm_zstats/scripts/zm/zstats.gsc
@@ -61,8 +65,28 @@ installed copy. If you install by hand, merge the zip's `Plutonium` folder into
 your Plutonium folder and preserve any menu image you want to keep yourself.
 
 The installers also accept `-Find` / `--find` to inspect the target without
-changing it, `-Uninstall` / `--uninstall` to remove ZStats, and `-Yes` /
-`--yes` to skip the confirmation. Start a new Zombies match after installation.
+changing it, `-Verify` / `--verify` to check installed files, `-Uninstall` /
+`--uninstall` to remove ZStats, and `-Yes` / `--yes` to skip the confirmation.
+They back up files they replace, restore those files on uninstall, leave
+modified files alone, and write an action log to `ZStatsInstaller/install.log`
+under LocalAppData on Windows or `~/.local/state/zstats/install.log` on Linux.
+Use `-LogRoot` / `--state-root` to put the log somewhere else.
+For the loose route, use `-Mode Script` on Windows or `--mode script` on Linux;
+the file lands at `Plutonium/storage/t6/scripts/zm/zstats.gsc`. The mod and
+script routes should not be used together. The loose script still tracks
+matches and draws the live HUD and recap, but Plutonium does not load Lua from
+that folder. It has no lobby or pause-menu settings entry, no **TOGGLE ZSTATS
+HUD** pause-menu row, and no client-local career-PB storage or reset. Use the
+mod route for those features. Start a new Zombies match after installation.
+
+---
+
+## Languages
+
+ZStats settings are available in the game's twelve supported languages.
+Translations were made by AI and may contain mistakes. If you find one, please
+report it to Xep on the [Discord](https://discord.gg/RE85HRwYZZ), with the
+language and the line as it reads in the game.
 
 ---
 
@@ -102,12 +126,19 @@ provide exactly display `--` or N/A rather than a made-up zero.
 
 ## Configuration
 
-Open **ZSTATS SETTINGS** in the Zombies lobby or on the game's pause menu. The
+With the mod route, open **ZSTATS SETTINGS** in the Zombies lobby or on the
+game's pause menu. The
 HUD and RECAP categories use the same Z Mods settings screen as the other mods.
 The host controls shared HUD and recap rows. Personal PB scope, round-PB
 announcements, and **RESET CAREER PERSONAL BESTS** belong to each client.
 The reset asks for confirmation and clears PB records without resetting HUD
 preferences.
+
+With the loose-script route, set `zs_*` dvars in the Plutonium console before
+starting a match. For example, `seta zs_hud_preset detailed` keeps Detailed
+as your chosen preset; `seta zs_hud_enabled 0` hides the gameplay panel.
+Run the installer with `-Configure` or `--configure` for a reminder. The
+script route has no Lua settings page to save a career PB record.
 
 | Setting | Default | What it controls |
 |---|---|---|
@@ -201,6 +232,21 @@ and choose the combined mod in its installer.
 ---
 
 ## Changelog
+
+### v1.1
+
+- Added a separate Scoreboard HUD Preset. The normal HUD stays Compact by
+  default, while holding the scoreboard shows Detailed by default. Same as HUD
+  and Off are available, and the choice does not change the normal preset.
+- Added a loose-script route and per-file Windows and Linux installers with
+  backup, verification, uninstall, and action logs. The selectable mod remains
+  the complete route with settings and client-local career PBs.
+- Translated the settings menu into twelve languages. Corrections are welcome
+  through the Discord link above.
+- Improved the live timer and personal HUD toggle when switching scoreboard
+  views, plus menu behavior shared with ZBundle. PPR and KPR now display a
+  consistent one decimal place instead of occasional long decimals.
+- Fixed oversized BO2 text in the career-record reset and other confirmation prompts.
 
 ### v1.0
 

@@ -1,0 +1,3 @@
+# Public release repositories ship checksummed files and executable shell scripts.
+# Disable line-ending conversion even when the local system has core.autocrlf=true.
+* -text

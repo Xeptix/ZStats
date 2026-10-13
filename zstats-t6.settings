@@ -5,6 +5,7 @@ zs_hud_enabled|bool|1|hud|[LIVE] Show the compact ZStats HUD. OFF hides every li
 zs_hud_position|enum|top_right|hud|[LIVE] Anchor the stats card to a screen corner. TOP RIGHT matches the default BO3-style layout.
 zs_hud_scale|int|100|hud|[LIVE] Scale the HUD text and card. Smaller values leave more room for map-authored HUD elements.
 zs_hud_preset|enum|compact|hud|[LIVE] Choose MINIMAL for time and zombies, COMPACT for the default four rows, DETAILED for every row, or CUSTOM to use the individual row toggles below.
+zs_scoreboard_hud_preset|enum|detailed|hud|[LIVE] Choose the ZStats panel while viewing the in-game scoreboard. SAME uses your normal HUD preset; OFF hides the panel only during the scoreboard.
 zs_hud_opacity|int|22|hud|[LIVE] Set the live HUD card background opacity. ZERO keeps the text and orange accent while removing the dark panel.
 zs_hud_header|bool|1|hud|[LIVE] Show the orange ZSTATS title. OFF removes the title and collapses the extra header spacing.
 zs_hud_time|bool|1|hud|[LIVE] In CUSTOM preset, show elapsed time since gameplay began for the current match.
