@@ -233,6 +233,12 @@ and choose the combined mod in its installer.
 
 ## Changelog
 
+### v1.2
+
+- Kept the Black Ops II edition paired with the Black Ops III settings-menu
+  update. Black Ops II gameplay, HUD, records, and settings are unchanged from
+  v1.1.
+
 ### v1.1
 
 - Added a separate Scoreboard HUD Preset. The normal HUD stays Compact by
