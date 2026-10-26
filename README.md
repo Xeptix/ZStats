@@ -233,6 +233,12 @@ and choose the combined mod in its installer.
 
 ## Changelog
 
+### v1.3
+
+- Prevent ROUND TIME from carrying a previous round's start into the next
+  round on custom maps that advance their round number early. Show `--` until
+  a fresh round start is known, rather than displaying an inaccurate timer.
+
 ### v1.2
 
 - Kept the Black Ops II edition paired with the Black Ops III settings-menu
